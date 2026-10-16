@@ -34,10 +34,19 @@ fi
 terraform version | head -1
 
 if ! command -v aws >/dev/null 2>&1; then
-  echo "AWS CLI not found. Install it: https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html" >&2
-  exit 1
+  echo "Installing AWS CLI v2..."
+  TMP="$(mktemp -d)"
+  curl -fsSL -o "${TMP}/awscli.zip" "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip"
+  unzip -q "${TMP}/awscli.zip" -d "${TMP}"
+  sudo "${TMP}/aws/install"
+  rm -rf "${TMP}"
 fi
 aws --version
+
+echo "Creating Python virtualenv and installing test dependencies..."
+cd "$(dirname "$0")/.."
+python3 -m venv .venv
+.venv/bin/pip install -q -r requirements-dev.txt
 
 echo
 echo "Checking AWS credentials..."

@@ -1,7 +1,7 @@
 .PHONY: test deploy smoke smoke-dlq destroy fmt
 
 test:
-	python3 -m pytest -q tests
+	.venv/bin/python -m pytest -q tests
 
 deploy:
 	./scripts/deploy.sh

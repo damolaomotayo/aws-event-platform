@@ -40,58 +40,40 @@ scripts/     setup_ec2.sh, deploy.sh, smoke_test.py, destroy.sh
 
 ## Run it on your EC2 instance
 
-**1. Give the instance AWS permissions.** Best practice is an IAM *instance role* (no keys on disk). For a personal sandbox account, attach a role with `AdministratorAccess`; for anything shared, scope it to API Gateway, Lambda, IAM, EventBridge, SQS, DynamoDB, CloudWatch, SNS and Logs.
-
-**2. Clone and set up** (Amazon Linux 2023 or Ubuntu):
+Works on Amazon Linux 2023 or Ubuntu 22.04+. Run each line in order.
 
 ```bash
-git clone https://github.com/<you>/aws-event-platform.git
-cd aws-event-platform
-./scripts/setup_ec2.sh        # installs Terraform, checks AWS CLI and credentials
-```
+# 1. Attach an IAM role with AdministratorAccess to the instance (EC2 console: Actions > Security > Modify IAM role)
 
-**3. Run the unit tests** (no AWS resources created):
+# 2. Get the code
+git clone https://github.com/<you>/aws-event-platform.git && cd aws-event-platform
 
-```bash
-pip3 install --user -r requirements-dev.txt
+# 3. Install everything (git, python3, Terraform 1.9.8, AWS CLI v2, test deps) and check credentials
+./scripts/setup_ec2.sh
+
+# 4. Unit tests (no AWS resources created)
 make test
-```
 
-**4. Deploy:**
-
-```bash
-export AWS_REGION=eu-west-1            # optional, this is the default
-export ALERT_EMAIL=you@example.com     # optional; confirm the SNS email afterwards
+# 5. Deploy (about 1-2 minutes)
+export AWS_REGION=eu-west-1
 make deploy
-```
 
-**5. Prove it works end to end:**
+# 6. Prove it works
+make smoke            # ~10 seconds, ends with "All N checks passed."
+make smoke-dlq        # optional, ~2 minutes, proves the dead-letter queue
 
-```bash
-make smoke          # about 10 seconds
-make smoke-dlq      # adds the dead-letter test, about 2 minutes
-```
-
-Expected: a list of `ok` lines ending with `All N checks passed.`
-
-**6. Try it by hand:**
-
-```bash
+# 7. Try it by hand
 API=$(terraform -chdir=terraform output -raw api_url)
+curl -X POST "$API/events" -H 'content-type: application/json' -d '{"type":"order.created","payload":{"order_id":42}}'
+curl "$API/events?type=order.created"
 
-curl -X POST "$API/events" -H 'content-type: application/json' \
-  -d '{"type":"order.created","payload":{"order_id":42}}'
-# -> {"event_id": "...", "status": "accepted"}
-
-curl "$API/events/<event_id>"
-curl "$API/events?type=order.created&limit=5"
-```
-
-**7. Tear down** (do this when finished so nothing keeps costing money):
-
-```bash
+# 8. Tear down when finished (stops all cost)
 make destroy
 ```
+
+Optional: `export ALERT_EMAIL=you@example.com` before step 5 to get alarm emails (confirm the SNS email).
+
+`make` is just a shortcut runner: each target in the `Makefile` wraps a command (`make deploy` runs `./scripts/deploy.sh`, which runs `terraform init` and `terraform apply`).
 
 ## API
 
