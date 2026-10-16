@@ -1,0 +1,3 @@
+boto3>=1.35
+moto[dynamodb,events,sqs]>=5.0
+pytest>=8.0
