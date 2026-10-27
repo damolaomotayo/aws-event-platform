@@ -20,6 +20,7 @@ Time: about 10 minutes. Cost: cents (everything is pay-per-use). Run step 7 when
 git clone https://github.com/<you>/aws-event-platform.git && cd aws-event-platform
 
 # 2. Install Terraform 1.9.8, AWS CLI v2, Python test deps; checks the IAM role works
+chmod +x scripts/setup_ec2.sh
 ./scripts/setup_ec2.sh
 
 # 3. Unit tests (creates nothing in AWS)
