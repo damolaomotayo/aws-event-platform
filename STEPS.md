@@ -23,6 +23,8 @@ git clone https://github.com/<you>/aws-event-platform.git && cd aws-event-platfo
 chmod +x scripts/setup_ec2.sh
 ./scripts/setup_ec2.sh
 
+Create and attach role, aws sts get-caller-identity
+
 # 3. Unit tests (creates nothing in AWS)
 make test
 
